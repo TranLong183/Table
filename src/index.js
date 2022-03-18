@@ -2,11 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
-import User from "./Table/User";
+import Room from "./Room";
 ReactDOM.render(
 	<React.StrictMode>
-		<App />
-		{/* <User /> */}
+		{/* <App /> */}
+		<Room />
 	</React.StrictMode>,
 	document.getElementById("root"),
 );

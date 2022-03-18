@@ -1,8 +1,8 @@
 import React, { useState, Fragment } from "react";
 import { nanoid } from "nanoid";
-import data from "./mock-data.json";
-import ReadOnlyRow from "./components/ReadOnlyRow";
-import EditableRow from "./components/EditableRow";
+import data from "./room.json";
+import ReadOnlyRow from "./components/ReadOnlyRoomRow";
+import EditableRow from "./components/EditableRoomRow";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -27,6 +27,7 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import { GithubPicker } from "react-color";
 
 function TablePaginationActions(props) {
 	const theme = useTheme();
@@ -87,7 +88,13 @@ TablePaginationActions.propTypes = {
 	page: PropTypes.number.isRequired,
 	rowsPerPage: PropTypes.number.isRequired,
 };
-const AddDialog = ({ handleAddFormChange, handleAddFormSubmit }) => {
+const AddDialog = ({
+	handleAddFormChange,
+	handleAddFormSubmit,
+	color,
+	addFormData,
+	handleChangeComplete,
+}) => {
 	const [open, setOpen] = useState(false);
 
 	const handleClickOpen = () => {
@@ -102,12 +109,12 @@ const AddDialog = ({ handleAddFormChange, handleAddFormSubmit }) => {
 		<div>
 			<Button onClick={handleClickOpen}>
 				<AddBoxIcon />
-				Add new user
+				Add new room
 			</Button>
 			<Dialog open={open} onClose={handleClose}>
-				<DialogTitle>Add new contact</DialogTitle>
+				<DialogTitle>Add new room</DialogTitle>
 				<DialogContent>
-					<DialogContentText>Enter the information to add new contact</DialogContentText>
+					<DialogContentText>Enter the information to add new room</DialogContentText>
 					<Box
 						component="form"
 						sx={{
@@ -119,32 +126,52 @@ const AddDialog = ({ handleAddFormChange, handleAddFormSubmit }) => {
 					>
 						<TextField
 							type="text"
-							name="fullName"
+							name="name"
 							required="required"
-							placeholder="Enter a name..."
+							placeholder="Enter room name..."
 							onChange={handleAddFormChange}
 						/>
 						<TextField
 							type="text"
-							name="address"
+							name="size"
 							required="required"
-							placeholder="Enter an addres..."
+							placeholder="Enter room size..."
+							onChange={handleAddFormChange}
+						/>
+						{/* <TextField
+							type="text"
+							name="roomColor"
+							required="required"
+							placeholder="Enter room color..."
+							onChange={handleAddFormChange}
+						/> */}
+
+						<TextField
+							type="text"
+							name="peripheral"
+							required="required"
+							placeholder="Please check..."
 							onChange={handleAddFormChange}
 						/>
 						<TextField
 							type="text"
-							name="phoneNumber"
+							name="roomVip"
 							required="required"
-							placeholder="Enter a phone number..."
+							placeholder="Please check..."
 							onChange={handleAddFormChange}
 						/>
-						<TextField
-							type="email"
-							name="email"
-							required="required"
-							placeholder="Enter an email..."
-							onChange={handleAddFormChange}
-						/>
+						<Box sx={{ marginRight: "1rem", padding: ".5rem" }}>
+							<Box
+								sx={{
+									backgroundColor: `${color}`,
+									padding: "10px",
+									border: "1px solid black",
+									width: "1rem",
+									aspectRatio: "1",
+								}}
+							/>
+							<GithubPicker color={color} onChangeComplete={handleChangeComplete} />
+						</Box>
 						<DialogActions>
 							<Button onClick={handleClose}>Cancel</Button>
 							<Button onClick={handleClose} type="submit">
@@ -157,19 +184,24 @@ const AddDialog = ({ handleAddFormChange, handleAddFormSubmit }) => {
 		</div>
 	);
 };
-const ManageContact = () => {
+function Room() {
 	const [searchValue, setSearchValue] = useState();
 	const [page, setPage] = React.useState(0);
+	const [color, setColor] = useState("blue");
+	const handleChangeComplete = (color) => {
+		setColor(color.hex);
+	};
 	const [rowsPerPage, setRowsPerPage] = React.useState(2);
-	const [contacts, setContacts] = useState(data);
+	const [rooms, setRooms] = useState(data);
 	const [addFormData, setAddFormData] = useState({
-		fullName: "",
-		address: "",
-		phoneNumber: "",
-		email: "",
+		name: "",
+		size: "",
+		color: "",
+		peripheral: "",
+		roomVip: "",
 	});
 
-	const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - contacts.length) : 0;
+	const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rooms.length) : 0;
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
@@ -181,13 +213,14 @@ const ManageContact = () => {
 	};
 
 	const [editFormData, setEditFormData] = useState({
-		fullName: "",
-		address: "",
-		phoneNumber: "",
-		email: "",
+		name: "",
+		size: "",
+		color: "",
+		peripheral: "",
+		roomVip: "",
 	});
 
-	const [editContactId, setEditContactId] = useState(null);
+	const [editRoomId, setEditRoomId] = useState(null);
 
 	const handleAddFormChange = (event) => {
 		event.preventDefault();
@@ -216,86 +249,91 @@ const ManageContact = () => {
 	const handleAddFormSubmit = (event) => {
 		event.preventDefault();
 
-		const newContact = {
+		const newRoom = {
 			id: nanoid(),
-			fullName: addFormData.fullName,
-			address: addFormData.address,
-			phoneNumber: addFormData.phoneNumber,
-			email: addFormData.email,
+			name: addFormData.name,
+			size: addFormData.size,
+			color: color,
+			peripheral: addFormData.peripheral,
+			roomVip: addFormData.roomVip,
 		};
 
-		const newContacts = [...contacts, newContact];
-		setContacts(newContacts);
+		const newRooms = [...rooms, newRoom];
+		setRooms(newRooms);
 	};
 
 	const handleEditFormSubmit = (event) => {
 		event.preventDefault();
 
-		const editedContact = {
-			id: editContactId,
-			fullName: editFormData.fullName,
-			address: editFormData.address,
-			phoneNumber: editFormData.phoneNumber,
-			email: editFormData.email,
+		const editedRoom = {
+			id: editRoomId,
+			name: editFormData.name,
+			size: editFormData.size,
+			color: color,
+			peripheral: editFormData.peripheral,
+			roomVip: editFormData.roomVip,
 		};
 
-		const newContacts = [...contacts];
+		const newRooms = [...rooms];
 
-		const index = contacts.findIndex((contact) => contact.id === editContactId);
+		const index = rooms.findIndex((room) => room.id === editRoomId);
 
-		newContacts[index] = editedContact;
+		newRooms[index] = editedRoom;
 
-		setContacts(newContacts);
-		setEditContactId(null);
+		setRooms(newRooms);
+		setEditRoomId(null);
 	};
 
-	const handleEditClick = (event, contact) => {
+	const handleEditClick = (event, room) => {
 		event.preventDefault();
-		setEditContactId(contact.id);
+		setEditRoomId(room.id);
 
 		const formValues = {
-			fullName: contact.fullName,
-			address: contact.address,
-			phoneNumber: contact.phoneNumber,
-			email: contact.email,
+			name: room.name,
+			size: room.size,
+			color: room.color,
+			peripheral: room.peripheral,
+			roomVip: room.roomVip,
 		};
 
 		setEditFormData(formValues);
 	};
 
 	const handleCancelClick = () => {
-		setEditContactId(null);
+		setEditRoomId(null);
 	};
 
-	const handleDeleteClick = (contactId) => {
-		const newContacts = [...contacts];
+	const handleDeleteClick = (roomId) => {
+		const newRooms = [...rooms];
 
-		const index = contacts.findIndex((contact) => contact.id === contactId);
+		const index = rooms.findIndex((contact) => contact.id === roomId);
 
-		newContacts.splice(index, 1);
+		newRooms.splice(index, 1);
 
-		setContacts(newContacts);
+		setRooms(newRooms);
 	};
 
-	const handleSearchClick = ({ searchValue, contacts }) => {
-		const result = contacts.find(({ fullName }) => fullName === searchValue);
+	const handleSearchClick = ({ searchValue, rooms }) => {
+		const result = rooms.find(({ fullName }) => fullName === searchValue);
 		console.log(result);
 	};
-
 	return (
-		<div className="app-container">
-			<Box
+		<Box className="app-container" sx={{ padding: "1rem" }}>
+			<Paper
 				sx={{
 					display: "flex",
 					justifyContent: "space-between",
 					alignItems: "center",
 					// padding: "1rem",
-					paddingBottom: ".5rem",
+					padding: ".5rem",
 				}}
 			>
 				<AddDialog
 					handleAddFormChange={handleAddFormChange}
 					handleAddFormSubmit={handleAddFormSubmit}
+					color={color}
+					handleChangeComplete={handleChangeComplete}
+					addFormData={addFormData}
 				/>
 				<Paper>
 					<InputBase
@@ -311,68 +349,83 @@ const ManageContact = () => {
 					<Button
 						sx={{ p: "10px" }}
 						aria-label="search"
-						onClick={handleSearchClick({ contacts, searchValue })}
+						onClick={handleSearchClick({ rooms, searchValue })}
 					>
 						<SearchIcon />
 					</Button>
 				</Paper>
-			</Box>
-			<form onSubmit={handleEditFormSubmit}>
-				<Table>
-					<TableHead>
-						<TableRow>
-							<TableCell>Name</TableCell>
-							<TableCell>Address</TableCell>
-							<TableCell>Phone Number</TableCell>
-							<TableCell>Email</TableCell>
-							<TableCell>Actions</TableCell>
-						</TableRow>
-					</TableHead>
-					<TableBody>
-						{(rowsPerPage > 0
-							? contacts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-							: contacts
-						).map((contact) => (
-							<Fragment>
-								{editContactId === contact.id ? (
-									<EditableRow
-										editFormData={editFormData}
-										handleEditFormChange={handleEditFormChange}
-										handleCancelClick={handleCancelClick}
-									/>
-								) : (
-									<ReadOnlyRow
-										contact={contact}
-										handleEditClick={handleEditClick}
-										handleDeleteClick={handleDeleteClick}
-									/>
-								)}
-							</Fragment>
-						))}
-					</TableBody>
-					<TableFooter>
-						<TableRow>
-							<TablePagination
-								rowsPerPageOptions={[2, 5, 10, 25, { label: "All", value: -1 }]}
-								count={contacts.length}
-								rowsPerPage={rowsPerPage}
-								page={page}
-								SelectProps={{
-									inputProps: {
-										"aria-label": "rows per page",
-									},
-									native: true,
-								}}
-								onPageChange={handleChangePage}
-								onRowsPerPageChange={handleChangeRowsPerPage}
-								ActionsComponent={TablePaginationActions}
-							/>
-						</TableRow>
-					</TableFooter>
-				</Table>
-			</form>
-		</div>
+			</Paper>
+			<Paper sx={{ marginTop: "1rem" }}>
+				<form onSubmit={handleEditFormSubmit}>
+					<Table>
+						<TableHead>
+							<TableRow>
+								<TableCell>Name</TableCell>
+								<TableCell>Room Size</TableCell>
+								<TableCell>Room Color</TableCell>
+								<TableCell>Peripheral</TableCell>
+								<TableCell>Room Vip</TableCell>
+								<TableCell>Action</TableCell>
+							</TableRow>
+						</TableHead>
+						<TableBody>
+							{(rowsPerPage > 0
+								? rooms.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+								: rooms
+							).map((room) => (
+								<Fragment>
+									{editRoomId === room.id ? (
+										<EditableRow
+											editFormData={editFormData}
+											handleEditFormChange={handleEditFormChange}
+											handleCancelClick={handleCancelClick}
+											handleChangeComplete={handleChangeComplete}
+											color={color}
+										/>
+									) : (
+										<ReadOnlyRow
+											room={room}
+											handleEditClick={handleEditClick}
+											handleDeleteClick={handleDeleteClick}
+										/>
+									)}
+								</Fragment>
+							))}
+						</TableBody>
+						<TableFooter>
+							<TableRow>
+								<TablePagination
+									rowsPerPageOptions={[2, 5, 10, 25, { label: "All", value: -1 }]}
+									count={rooms.length}
+									rowsPerPage={rowsPerPage}
+									page={page}
+									SelectProps={{
+										inputProps: {
+											"aria-label": "rows per page",
+										},
+										native: true,
+									}}
+									onPageChange={handleChangePage}
+									onRowsPerPageChange={handleChangeRowsPerPage}
+									ActionsComponent={TablePaginationActions}
+								/>
+							</TableRow>
+							{/* <Box
+							sx={{
+								backgroundColor: `${color}`,
+								padding: "10px",
+								border: "1px solid black",
+								width: "1rem",
+								aspectRatio: "1",
+							}}
+						/>
+						<GithubPicker color={color} onChangeComplete={handleChangeComplete} /> */}
+						</TableFooter>
+					</Table>
+				</form>
+			</Paper>
+		</Box>
 	);
-};
+}
 
-export default ManageContact;
+export default Room;
